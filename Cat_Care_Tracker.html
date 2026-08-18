@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Cat Care Tracker</title>
+<style>
+  :root {
+    --bg: #14110f;
+    --panel: #1f1a16;
+    --panel-2: #2a231d;
+    --gold: #e8b84b;
+    --gold-soft: #f5d98a;
+    --text: #f3ece1;
+    --muted: #a8987f;
+    --line: #3a3026;
+    --green: #7bbf6a;
+    --red: #d9756b;
+    --blue: #6ba8d9;
+    --accent: #d98a5b;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: radial-gradient(1200px 600px at 70% -10%, #2a211a 0%, var(--bg) 55%);
+    color: var(--text);
+    padding: 24px;
+    min-height: 100vh;
+  }
+  h1 {
+    margin: 0 0 4px;
+    font-size: 26px;
+    letter-spacing: .3px;
+  }
+  h1 .paw { color: var(--gold); }
+  .sub { color: var(--muted); margin: 0 0 20px; font-size: 13px; }
+  .grid {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: 20px;
+    align-items: start;
+  }
+  @media (max-width: 920px) { .grid { grid-template-columns: 1fr; } }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 18px 18px 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.35);
+  }
+  .card h2 {
+    margin: 0 0 14px;
+    font-size: 15px;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--gold-soft);
+  }
+  label { display: block; font-size: 12px; color: var(--muted); margin: 12px 0 5px; }
+  input, select, textarea {
+    width: 100%;
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    color: var(--text);
+    border-radius: 9px;
+    padding: 9px 10px;
+    font-size: 14px;
+    outline: none;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--gold); }
+  .row { display: flex; gap: 10px; }
+  .row > * { flex: 1; }
+  button {
+    cursor: pointer;
+    border: none;
+    border-radius: 9px;
+    padding: 10px 14px;
+    font-size: 14px;
+    font-weight: 600;
+    transition: transform .08s ease, filter .15s ease;
+  }
+  button:active { transform: translateY(1px); }
+  .btn-primary { background: linear-gradient(180deg, var(--gold-soft), var(--gold)); color: #2a2012; }
+  .btn-primary:hover { filter: brightness(1.06); }
+  .btn-ghost { background: var(--panel-2); color: var(--text); border: 1px solid var(--line); }
+  .hamburger { position: fixed; top: 14px; left: 14px; z-index: 50; background: var(--panel-2); color: var(--gold); border: 1px solid var(--line);
+    border-radius: 10px; width: 42px; height: 42px; font-size: 20px; cursor: pointer; line-height: 1; }
+  .hamburger:hover { border-color: var(--gold); }
+  .menu { position: fixed; top: 0; left: 0; bottom: 0; width: 280px; max-width: 85vw; background: var(--panel); border-right: 1px solid var(--line);
+    z-index: 60; transform: translateX(-105%); transition: transform .28s ease; padding: 60px 16px 16px; overflow-y: auto; box-shadow: 4px 0 24px rgba(0,0,0,.4); }
+  .menu.open { transform: translateX(0); }
+  .menu-head { font-size: 13px; text-transform: uppercase; letter-spacing: .8px; color: var(--gold-soft); margin-bottom: 12px; }
+  .menu-cat { display: flex; align-items: center; gap: 8px; padding: 10px 8px; border: 1px solid var(--line); border-radius: 10px; margin-bottom: 8px; background: var(--panel-2); }
+  .menu-cat .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--muted); flex: none; }
+  .menu-cat .dot.on { background: var(--gold); box-shadow: 0 0 0 3px rgba(212,175,55,.25); }
+  .menu-cat .menu-acts { margin-left: auto; display: flex; gap: 4px; }
+  .menu-cat .menu-acts button { background: transparent; border: 1px solid var(--line); color: var(--muted); border-radius: 6px; padding: 3px 7px; font-size: 11px; cursor: pointer; }
+  .menu-cat .menu-acts button:hover { color: var(--text); border-color: var(--gold); }
+  .menu-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+  .menu-actions button { background: var(--panel-2); color: var(--text); border: 1px solid var(--line); border-radius: 10px; padding: 10px; cursor: pointer; font-size: 13px; }
+  .menu-actions button:hover { border-color: var(--gold); }
+  .menu-actions button.danger { color: #ff9a9a; border-color: #5a2a2a; }
+  .menu-actions button.ghost { color: var(--muted); }
+  .profiles button { background: var(--panel-2); color: var(--muted); border:1px solid var(--line); border-radius:20px; padding:6px 14px; cursor:pointer; font-size:13px; }
+  .profiles button.active { background: var(--gold); color:#2a2012; border-color: var(--gold); font-weight:600; }
+  .profiles button.add { background:transparent; color: var(--gold-soft); border:1px dashed var(--gold); }
+  .btn-sm { padding: 6px 10px; font-size: 12px; }
+  .legend { display:flex; gap:16px; margin-top:10px; font-size:12px; color:var(--muted); }
+  .legend-item { display:flex; align-items:center; gap:6px; }
+  .swatch { width:12px; height:12px; border-radius:3px; display:inline-block; }
+  .swatch.food { background: linear-gradient(180deg,var(--gold-soft),var(--accent)); }
+  .swatch.water { background: linear-gradient(180deg,#5ec8e6,#2a7fb8); }
+  .feed-row, .med-time-row {
+    display: flex; gap: 8px; align-items: center; margin-bottom: 8px;
+    background: var(--panel-2); padding: 8px; border-radius: 10px; border: 1px solid var(--line);
+  }
+  .feed-row select, .feed-row input { flex: 1; }
+  .feed-row .del { flex: 0 0 auto; background: transparent; color: var(--red); border: none; font-size: 18px; padding: 4px 8px; }
+  .nutri {
+    margin-top: 8px; font-size: 12px; color: var(--green);
+    background: rgba(123,191,106,.08); border: 1px solid rgba(123,191,106,.3);
+    border-radius: 8px; padding: 8px 10px; display: none;
+  }
+  .nutri.none { color: var(--muted); background: rgba(168,152,127,.06); border-color: var(--line); }
+  .toggle { display: inline-flex; gap: 6px; }
+  .toggle button { background: var(--panel-2); color: var(--muted); border: 1px solid var(--line); }
+  .toggle button.active { background: var(--gold); color: #2a2012; border-color: var(--gold); }
+  .hidden { display: none !important; }
+  .pill { font-size: 11px; background: var(--panel-2); border: 1px solid var(--line); color: var(--gold-soft); padding: 3px 8px; border-radius: 20px; }
+  /* chart */
+  .tabs { display: flex; gap: 8px; margin-bottom: 14px; }
+  .tabs button { background: var(--panel-2); color: var(--muted); border: 1px solid var(--line); flex: 1; }
+  .tabs button.active { background: var(--gold); color: #2a2012; border-color: var(--gold); }
+  .chart-wrap { background: var(--panel-2); border: 1px solid var(--line); border-radius: 12px; padding: 14px 12px 6px; }
+  .chart { display: flex; align-items: flex-end; gap: 4px; height: 220px; }
+  .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; }
+  .bar {
+    width: 70%; max-width: 26px; border-radius: 5px 5px 0 0;
+    background: linear-gradient(180deg, var(--gold-soft), var(--accent));
+    height: 0; transition: height .9s cubic-bezier(.22,1,.36,1);
+  }
+  .bar-label { font-size: 9px; color: var(--muted); margin-top: 6px; height: 12px; overflow: hidden; }
+  .axis-note { font-size: 11px; color: var(--muted); text-align: center; margin-top: 10px; }
+  .log { max-height: 260px; overflow: auto; margin-top: 6px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--line); }
+  th { color: var(--gold-soft); text-transform: uppercase; letter-spacing: .6px; font-size: 10px; position: sticky; top: 0; background: var(--panel); }
+  td { color: var(--text); }
+  .empty { color: var(--muted); font-size: 13px; padding: 12px 0; }
+  .footnote { color: var(--muted); font-size: 11px; margin-top: 14px; }
+  .full { grid-column: 1 / -1; }
+  .tag { display:inline-block; background: var(--panel-2); border:1px solid var(--line); border-radius:6px; padding:2px 7px; margin:2px 3px 2px 0; font-size:11px; color: var(--gold-soft); }
+</style>
+</head>
+<body>
+  <button class="hamburger" id="hamburger" type="button" aria-label="Menu">&#9776;</button>
+  <div class="menu" id="menu"></div>
+  <div class="profiles" id="profiles"></div>
+
+  <h1><span class="paw">🐾</span> Cat Care Tracker</h1>
+  <p class="sub">Log feeding, medication &amp; water for your cat. Date is stamped automatically on every submission.</p>
+
+  <div class="grid">
+    <!-- LEFT: form -->
+    <div class="card">
+      <h2>Daily Log Entry</h2>
+
+      <!-- Feeding -->
+      <label>Feeding records <span class="pill">time + amount + brand</span></label>
+      <div id="feedList"></div>
+      <button class="btn-ghost btn-sm" id="addFeed" type="button">+ Add feeding</button>
+      <div class="nutri none" id="nutriBox">Enter a brand above to look up nutrition data. If unknown, we just collect the amount &amp; time.</div>
+
+      <!-- Medication -->
+      <label>Does the cat need medication?</label>
+      <div class="toggle" id="medToggle">
+        <button type="button" data-v="no" class="active">No</button>
+        <button type="button" data-v="yes">Yes</button>
+      </div>
+      <div id="medSection" class="hidden">
+        <div class="row">
+          <div>
+            <label>Medication type</label>
+            <input id="medType" placeholder="e.g. Gabapentin" />
+          </div>
+          <div>
+            <label>Times per day</label>
+            <input id="medPerDay" type="number" min="1" max="12" value="1" />
+          </div>
+        </div>
+        <label>Prescribed times</label>
+        <div id="medTimes"></div>
+        <button class="btn-ghost btn-sm" id="addMedTime" type="button">+ Add prescribed time</button>
+      </div>
+
+      <!-- Water -->
+      <label>Water bowl</label>
+      <div class="row">
+        <div>
+          <label>Refills per day</label>
+          <input id="waterRefills" type="number" min="0" max="20" value="2" />
+        </div>
+        <div>
+          <label>Amount left (per refill)</label>
+          <select id="waterLeft">
+            <option value="1/4">1/4 bowl left</option>
+            <option value="1/2">1/2 bowl left</option>
+            <option value="3/4">3/4 bowl left</option>
+            <option value="1" selected>Whole bowl left</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="margin-top:18px; display:flex; gap:10px;">
+        <button class="btn-primary" id="submit" type="button">Save entry (auto-date)</button>
+        <button class="btn-ghost" id="clearLog" type="button">Clear log</button>
+      </div>
+      <p class="footnote">All entries are stored locally in this browser (localStorage) — no account needed.</p>
+    </div>
+
+    <!-- RIGHT: activity breakdown -->
+    <div class="card">
+      <h2>Activity Breakdown</h2>
+      <div class="tabs" id="chartTabs">
+        <button type="button" data-range="food" class="active">Food</button>
+        <button type="button" data-range="water">Water</button>
+      </div>
+      <div class="chart-wrap">
+        <div class="chart" id="chart"></div>
+        <div class="axis-note" id="axisNote">Feeding amount (cans) per day</div>
+      </div>
+      <div class="legend">
+        <span class="legend-item"><span class="swatch food"></span> Food (cans/day)</span>
+        <span class="legend-item"><span class="swatch water"></span> Water (refills/day)</span>
+      </div>
+    </div>
+
+    <!-- FULL: log -->
+    <div class="card full">
+      <h2>Saved Entries</h2>
+      <div class="log">
+        <table>
+          <thead><tr><th>Date</th><th>Feeding</th><th>Medication</th><th>Water</th></tr></thead>
+          <tbody id="logBody"></tbody>
+        </table>
+        <div class="empty" id="logEmpty">No entries yet — fill the form and hit “Save entry”.</div>
+      </div>
+    </div>
+  </div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---- Built-in nutrition lookup (calories & macros per 1 can / 1 full serving) ----
+  // Values are approximate per 5.5oz (156g) can of wet food. Unknown brands simply return null.
+  var NUTRITION = {
+    "wellness":      { kcal: 170, protein: "10g", fat: "9g",  brand: "Wellness Core" },
+    "royal canin":   { kcal: 165, protein: "9g",  fat: "7g",  brand: "Royal Canin" },
+    "purina pro plan": { kcal: 190, protein: "11g", fat: "10g", brand: "Purina Pro Plan" },
+    "blue buffalo":  { kcal: 175, protein: "10g", fat: "9g",  brand: "Blue Buffalo" },
+    "fancy feast":   { kcal: 145, protein: "9g",  fat: "5g",  brand: "Fancy Feast" },
+    "sheba":         { kcal: 130, protein: "8g",  fat: "5g",  brand: "Sheba" },
+    "tiki cat":      { kcal: 160, protein: "12g", fat: "6g",  brand: "Tiki Cat" },
+    "nulo":          { kcal: 185, protein: "11g", fat: "10g", brand: "Nulo" },
+    "weruva":        { kcal: 140, protein: "10g", fat: "6g",  brand: "Weruva" },
+    "hills science diet": { kcal: 175, protein: "9g", fat: "8g", brand: "Hill's Science Diet" }
+  };
+
+  var AMOUNTS = ["1/4", "1/2", "3/4", "1"]; // in cans
+  var STORE_KEY = "catCareLog.v1";
+  var PROFILES_KEY = "catCareProfiles.v1";
+
+  // ---- Profiles layer (multi-cat) ----
+  var FOODS = ["Wellness", "Royal Canin", "Purina Pro Plan", "Blue Buffalo", "Fancy Feast", "Sheba", "Tiki Cat", "Nulo", "Weruva", "Hill's Science Diet"];
+  var MEDS = ["Gabapentin", "Prednisolone", "Antibiotic", "Anti-nausea", "Pain relief"];
+  function rand(a, b) { return a + Math.random() * (b - a); }
+  function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+  function frac() { return pick(["1/4", "1/2", "3/4", "1"]); }
+  function seedRandomCat(name) {
+    var log = [], n = 8 + Math.floor(Math.random() * 10);
+    for (var i = 0; i < n; i++) {
+      var d = new Date(Date.now() - Math.floor(rand(0, 21)) * 86400000);
+      var ds = d.toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" });
+      var feeds = [], fc = 1 + Math.floor(Math.random() * 3);
+      for (var j = 0; j < fc; j++) feeds.push((8 + Math.floor(rand(0, 12))) + ":00 · " + frac() + " can · " + pick(FOODS));
+      var med = Math.random() < 0.4 ? pick(MEDS) + " · 1x/day @ " + (8 + Math.floor(rand(0, 10))) + ":00" : "(none)";
+      var refills = Math.floor(rand(1, 4));
+      log.push({ date: ds, feeding: feeds.join("<br>"), med: med, water: refills + " refill(s)/day · " + pick(["1/4", "1/2", "3/4", "1"]) + " left" });
+    }
+    return { name: name, log: log };
+  }
+  function loadProfiles() {
+    try {
+      var raw = localStorage.getItem(PROFILES_KEY);
+      if (raw) {
+        var p = JSON.parse(raw);
+        if (p && Array.isArray(p.cats) && p.cats.length && p.cats.every(function (c) { return c && typeof c.name === "string" && Array.isArray(c.log); })) {
+          if (typeof p.cur !== "number" || p.cur < 0 || p.cur >= p.cats.length) p.cur = 0;
+          return p;
+        }
+      }
+    } catch (e) { /* fall through to reseed */ }
+    var legacy = null;
+    try { legacy = JSON.parse(localStorage.getItem(STORE_KEY)); } catch (e) {}
+    if (!Array.isArray(legacy)) legacy = [];
+    // first run (or corrupted state): seed two demo cats with random data
+    return { cats: [seedRandomCat("Milo"), seedRandomCat("Luna")], cur: 0 };
+  }
+  function saveProfiles(p) { localStorage.setItem(PROFILES_KEY, JSON.stringify(p)); }
+  var PROFILES = loadProfiles();
+  function curCat() { return PROFILES.cats[PROFILES.cur] || { name: "Cat", log: [] }; }
+  function renderProfiles() {
+    var el = document.getElementById("profiles");
+    el.innerHTML = PROFILES.cats.map(function (c, i) {
+      return '<button class="' + (i === PROFILES.cur ? "active" : "") + '" data-i="' + i + '">' + escapeHtml(c.name) + "</button>";
+    }).join("") + '<button class="add" id="addCat">+ Cat</button>';
+    Array.prototype.forEach.call(el.querySelectorAll("button[data-i]"), function (b) {
+      b.addEventListener("click", function () {
+        PROFILES.cur = parseInt(b.dataset.i, 10);
+        saveProfiles(PROFILES);
+        renderProfiles(); renderLog(); drawChart(currentKind);
+      });
+    });
+    document.getElementById("addCat").addEventListener("click", function () {
+      var n = prompt("Cat name:", "Cat " + (PROFILES.cats.length + 1));
+      if (!n) return;
+      PROFILES.cats.push({ name: n, log: [] });
+      PROFILES.cur = PROFILES.cats.length - 1;
+      saveProfiles(PROFILES);
+      renderProfiles(); renderLog(); drawChart(currentKind);
+    });
+  }
+  function openMenu() {
+    var m = document.getElementById("menu");
+    m.innerHTML = '<div class="menu-head">Profiles</div>' +
+      PROFILES.cats.map(function (c, i) {
+        return '<div class="menu-cat"><span class="dot ' + (i === PROFILES.cur ? "on" : "") + '"></span>' + escapeHtml(c.name) +
+          '<span class="menu-acts"><button data-act="go" data-i="' + i + '">open</button>' +
+          '<button data-act="ren" data-i="' + i + '">rename</button>' +
+          '<button data-act="del" data-i="' + i + '">delete</button></span></div>';
+      }).join("") +
+      '<div class="menu-actions">' +
+      '<button data-act="add">+ Add cat</button>' +
+      '<button data-act="seed">↻ Random demo data</button>' +
+      '<button data-act="reset" class="danger">⚠ Reset ALL data</button>' +
+      '<button data-act="close" class="ghost">Close</button></div>';
+    m.classList.add("open");
+    Array.prototype.forEach.call(m.querySelectorAll("button[data-act]"), function (b) {
+      b.addEventListener("click", function () {
+        var act = b.dataset.act, i = parseInt(b.dataset.i, 10);
+        if (act === "go") { PROFILES.cur = i; saveProfiles(PROFILES); renderProfiles(); renderLog(); drawChart(currentKind); closeMenu(); }
+        else if (act === "ren") { var nn = prompt("Rename cat:", PROFILES.cats[i].name); if (nn) { PROFILES.cats[i].name = nn; saveProfiles(PROFILES); renderProfiles(); openMenu(); } }
+        else if (act === "del") { if (PROFILES.cats.length <= 1) { alert("Need at least one cat."); return; } if (confirm("Delete " + PROFILES.cats[i].name + "?")) { PROFILES.cats.splice(i, 1); if (PROFILES.cur >= PROFILES.cats.length) PROFILES.cur = 0; saveProfiles(PROFILES); renderProfiles(); renderLog(); drawChart(currentKind); openMenu(); } }
+        else if (act === "add") { var n = prompt("Cat name:", "Cat " + (PROFILES.cats.length + 1)); if (n) { PROFILES.cats.push({ name: n, log: [] }); PROFILES.cur = PROFILES.cats.length - 1; saveProfiles(PROFILES); renderProfiles(); renderLog(); drawChart(currentKind); openMenu(); } }
+        else if (act === "seed") { if (confirm("Replace current cat's log with random demo entries?")) { PROFILES.cats[PROFILES.cur].log = seedRandomCat(PROFILES.cats[PROFILES.cur].name).log; saveProfiles(PROFILES); renderLog(); drawChart(currentKind); openMenu(); } }
+        else if (act === "reset") { if (confirm("Delete ALL cats and entries? This cannot be undone.")) { localStorage.removeItem(PROFILES_KEY); localStorage.removeItem(STORE_KEY); PROFILES = loadProfiles(); renderProfiles(); renderLog(); drawChart(currentKind); closeMenu(); } }
+        else if (act === "close") { closeMenu(); }
+      });
+    });
+  }
+  function closeMenu() { document.getElementById("menu").classList.remove("open"); }
+  function escapeHtml(s) { return (s || "").replace(/[&<>]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]; }); }
+
+  // ---------- Feeding rows ----------
+  var feedList = document.getElementById("feedList");
+  var nutriBox = document.getElementById("nutriBox");
+
+  function addFeedRow(time, amount, brand) {
+    var row = document.createElement("div");
+    row.className = "feed-row";
+    var t = document.createElement("input");
+    t.type = "time"; t.value = time || ""; t.className = "f-time";
+    var a = document.createElement("select"); a.className = "f-amount";
+    AMOUNTS.forEach(function (am) {
+      var o = document.createElement("option"); o.value = am; o.textContent = am + " can";
+      if (am === (amount || "1/2")) o.selected = true;
+      a.appendChild(o);
+    });
+    var b = document.createElement("input");
+    b.type = "text"; b.placeholder = "Brand (optional)"; b.className = "f-brand"; b.value = brand || "";
+    b.addEventListener("input", onBrandLookup);
+    var del = document.createElement("button");
+    del.type = "button"; del.className = "del"; del.textContent = "×"; del.title = "Remove";
+    del.addEventListener("click", function () { row.remove(); pruneNutri(); });
+    row.appendChild(t); row.appendChild(a); row.appendChild(b); row.appendChild(del);
+    feedList.appendChild(row);
+  }
+
+  function onBrandLookup() {
+    // use the first populated brand field to show a lookup hint
+    var brands = Array.prototype.slice.call(document.querySelectorAll(".f-brand")).map(function (e){return e.value.trim();});
+    var found = null;
+    for (var i = 0; i < brands.length; i++) {
+      var key = brands[i].toLowerCase();
+      if (NUTRITION[key]) { found = NUTRITION[key]; break; }
+    }
+    if (found) {
+      nutriBox.className = "nutri";
+      nutriBox.innerHTML = "📊 <b>" + found.brand + "</b> — ~" + found.kcal + " kcal, protein " + found.protein + ", fat " + found.fat + " (per can).";
+    } else if (brands.join("").trim()) {
+      nutriBox.className = "nutri none";
+      nutriBox.textContent = "No nutrition data for that brand — no problem, we'll just collect amount & time.";
+    } else {
+      nutriBox.className = "nutri none";
+      nutriBox.textContent = "Enter a brand above to look up nutrition data. If unknown, we just collect the amount & time.";
+    }
+  }
+  function pruneNutri() { onBrandLookup(); }
+
+  document.getElementById("addFeed").addEventListener("click", function () { addFeedRow("", "1/2", ""); });
+
+  // ---------- Medication ----------
+  var medToggle = document.getElementById("medToggle");
+  var medSection = document.getElementById("medSection");
+  var medTimes = document.getElementById("medTimes");
+  medToggle.addEventListener("click", function (e) {
+    var btn = e.target.closest("button"); if (!btn) return;
+    Array.prototype.forEach.call(medToggle.children, function (b) { b.classList.remove("active"); });
+    btn.classList.add("active");
+    medSection.classList.toggle("hidden", btn.dataset.v === "no");
+  });
+  function addMedTime(val) {
+    var row = document.createElement("div");
+    row.className = "med-time-row";
+    var t = document.createElement("input"); t.type = "time"; t.value = val || ""; t.className = "m-time";
+    var del = document.createElement("button"); del.type = "button"; del.className = "del"; del.textContent = "×";
+    del.addEventListener("click", function () { row.remove(); });
+    row.appendChild(t); row.appendChild(del);
+    medTimes.appendChild(row);
+  }
+  document.getElementById("addMedTime").addEventListener("click", function () { addMedTime(""); });
+
+  // ---------- Submit ----------
+  function nowStamp() {
+    var d = new Date();
+    var p = function (n) { return (n < 10 ? "0" : "") + n; };
+    return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate()) +
+           " " + p(d.getHours()) + ":" + p(d.getMinutes());
+  }
+
+  function loadLog() {
+    return curCat().log || [];
+  }
+  function saveLog(log) {
+    curCat().log = log;
+    saveProfiles(PROFILES);
+  }
+
+  function renderLog() {
+    var log = loadLog();
+    var body = document.getElementById("logBody");
+    var empty = document.getElementById("logEmpty");
+    body.innerHTML = "";
+    empty.style.display = log.length ? "none" : "block";
+    log.slice().reverse().forEach(function (e) {
+      var tr = document.createElement("tr");
+      tr.innerHTML = "<td>" + e.date + "</td><td>" + e.feeding + "</td><td>" + e.med + "</td><td>" + e.water + "</td>";
+      body.appendChild(tr);
+    });
+  }
+
+  document.getElementById("submit").addEventListener("click", function () {
+    // feeding
+    var feeds = Array.prototype.slice.call(document.querySelectorAll(".feed-row")).map(function (r) {
+      var time = r.querySelector(".f-time").value || "(no time)";
+      var amt = r.querySelector(".f-amount").value;
+      var brand = r.querySelector(".f-brand").value.trim();
+      return time + " · " + amt + " can" + (brand ? " · " + brand : "");
+    });
+    if (!feeds.length) feeds.push("(none)");
+
+    // medication
+    var needsMed = medToggle.querySelector(".active").dataset.v === "yes";
+    var med = "(none)";
+    if (needsMed) {
+      var type = document.getElementById("medType").value.trim() || "unnamed";
+      var perDay = document.getElementById("medPerDay").value || "1";
+      var times = Array.prototype.slice.call(document.querySelectorAll(".m-time")).map(function (t) { return t.value; }).filter(Boolean);
+      med = type + " · " + perDay + "x/day" + (times.length ? " @ " + times.join(", ") : "");
+    }
+
+    // water
+    var refills = document.getElementById("waterRefills").value || "0";
+    var left = document.getElementById("waterLeft").value;
+    var water = refills + " refill(s)/day · " + left + " left";
+
+    var log = loadLog();
+    log.push({ date: nowStamp(), feeding: feeds.join("<br>"), med: med, water: water });
+    saveLog(log);
+    renderLog();
+  });
+
+  document.getElementById("clearLog").addEventListener("click", function () {
+    if (confirm("Delete all saved entries for " + curCat().name + "?")) { curCat().log = []; saveProfiles(PROFILES); renderLog(); }
+  });
+
+  // ---------- Charts (real activity breakdown) ----------
+  var chart = document.getElementById("chart");
+  var axisNote = document.getElementById("axisNote");
+  var WATER_COLORS = true;
+
+  function parseFraction(s) {
+    s = (s || "").trim();
+    if (!s) return 0;
+    if (s.indexOf("/") >= 0) { var p = s.split("/"); var n = parseFloat(p[0]), d = parseFloat(p[1]); if (d) return n / d; }
+    return parseFloat(s) || 0;
+  }
+  function parseDayLabel(dateStr) {
+    // entries look like "Aug 16, 2026 8:00 PM" -> "Aug 16"
+    var m = (dateStr || "").match(/^([A-Za-z]{3})\s+(\d{1,2})/);
+    return m ? m[1] + " " + m[2] : "?";
+  }
+  function feedingCans(entry) {
+    // feeding is HTML like "8:00 · 1/2 can · Wellness<br>6:00 · 1 can"
+    var total = 0;
+    String(entry.feeding || "").split(/<br>/).forEach(function (seg) {
+      var m = seg.match(/([\d./]+)\s*can/i);
+      if (m) total += parseFraction(m[1]);
+    });
+    return total;
+  }
+  function waterRefills(entry) {
+    // water like "2 refill(s)/day · 1/2 left"
+    var m = String(entry.water || "").match(/([\d./]+)\s*refill/i);
+    return m ? parseFraction(m[1]) : 0;
+  }
+  function buildSeries(kind) {
+    var log = loadLog();
+    var map = {};
+    log.forEach(function (e) {
+      var key = parseDayLabel(e.date);
+      if (key === "?") return;
+      map[key] = (map[key] || 0) + (kind === "food" ? feedingCans(e) : waterRefills(e));
+    });
+    // show last 14 distinct day-labels present, oldest->newest
+    var keys = Object.keys(map);
+    if (keys.length > 14) keys = keys.slice(keys.length - 14);
+    return keys.map(function (k) { return { label: k, value: map[k] }; });
+  }
+
+  var currentKind = "food";
+  function drawChart(kind) {
+    currentKind = kind;
+    var data = buildSeries(kind);
+    axisNote.textContent = kind === "food" ? "Feeding amount (cans) per day" : "Water refills per day";
+    chart.innerHTML = "";
+    if (!data.length) {
+      axisNote.textContent = "No " + (kind === "food" ? "feeding" : "water") + " entries yet for " + curCat().name + ".";
+      return;
+    }
+    var max = Math.max.apply(null, data.map(function (d) { return d.value; }).concat([1]));
+    data.forEach(function (d, i) {
+      var col = document.createElement("div"); col.className = "bar-col";
+      var bar = document.createElement("div"); bar.className = "bar";
+      if (kind === "water") bar.style.background = "linear-gradient(180deg,#5ec8e6,#2a7fb8)";
+      var lab = document.createElement("div"); lab.className = "bar-label"; lab.textContent = d.label;
+      col.appendChild(bar); col.appendChild(lab);
+      chart.appendChild(col);
+      var pct = Math.max(4, (d.value / max) * 100);
+      (function (barEl, idx, val) {
+        setTimeout(function () { barEl.style.height = pct.toFixed(1) + "%"; }, 40 + idx * 22);
+        barEl.title = d.label + ": " + (val % 1 === 0 ? val : val.toFixed(2)) + (kind === "food" ? " cans" : " refills");
+      })(bar, i, d.value);
+    });
+  }
+
+  document.getElementById("chartTabs").addEventListener("click", function (e) {
+    var btn = e.target.closest("button"); if (!btn) return;
+    Array.prototype.forEach.call(this.children, function (b) { b.classList.remove("active"); });
+    btn.classList.add("active");
+    drawChart(btn.dataset.range);
+  });
+
+  // ---------- init ----------
+  renderProfiles();
+  document.getElementById("hamburger").addEventListener("click", openMenu);
+  addFeedRow("", "1/2", "");
+  addMedTime("");
+  renderLog();
+  drawChart("food");
+})();
+</script>
+</body>
+</html>
