@@ -4,3 +4,9 @@ __pycache__/
 venv/
 .env
 node_modules/
+
+# secrets / runtime artifacts
+*.key
+*.crt
+*.pem
+*.log
